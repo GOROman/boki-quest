@@ -127,7 +127,7 @@ export default function Home() {
       <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>SCORE <b>{score.toLocaleString()}</b>{fx === "correct" && <em className="scorePop">+{100 + (streak - 1) * 20}</em>}</span><span>STREAK <b>{streak}×</b></span><span className="lives" aria-label={`ライフ ${lives}`}>{[0,1,2].map(i => <i key={i} className={i < lives ? "on" : ""}>♥</i>)}</span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
       <div className="progress"><i style={{width: `${((index + 1) / questions.length) * 100}%`}}></i></div>
       <section className="quiz" key={index}>
-        <div className="quizTop"><div className="questionMeta"><span>QUESTION {String(index + 1).padStart(2,"0")} / {questions.length}</span><b>♡ {q.category}</b></div><div className={`quizGuide ${fx}`}><img src="./boki-quest-key-art.png" alt="簿記ちゃん"/><span>{fx === "correct" ? "大正解！" : fx === "wrong" ? "ドンマイ！" : "落ち着いて考えよう♪"}</span></div></div>
+        <div className="questionMeta"><span>QUESTION {String(index + 1).padStart(2,"0")} / {questions.length}</span><b>♡ {q.category}</b></div>
         <h1>{q.prompt}</h1>
         <div className="choices">{q.choices.map((choice, i) => {
           const state = selected === null ? "" : i === q.answer ? "correct" : i === selected ? "wrong" : "dim";
@@ -135,6 +135,10 @@ export default function Home() {
         })}</div>
         {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? `すごい、正解！ ${100 + (streak - 1) * 20} pt` : "大丈夫。ここで覚えればOK！"}</b></div><p>{q.explanation}</p><div className="journal"><small>簿記ちゃんメモ</small>{q.journal}</div><button onClick={next}>{index === questions.length - 1 || lives === 0 ? "結果を見る" : "次の問題へ"} →</button></div>}
       </section>
+      <aside className={`gameMascot ${selected === null ? "neutral" : correct ? "correct" : "wrong"}`} aria-live="polite">
+        <span className="mascotTalk">{selected === null ? "焦らずいこう♪" : correct ? "大正解！さすが♡" : "大丈夫、次で取り返そう！"}</span>
+        <div className="mascotCrop"><img src="./boki-chan-character-sheet.png" alt={selected === null ? "応援する簿記ちゃん" : correct ? "正解を喜ぶ簿記ちゃん" : "一緒に考える簿記ちゃん"}/></div>
+      </aside>
       <footer className="gameFooter"><span>簿記ちゃんヒント：資産・費用の増加は借方、負債・純資産・収益の増加は貸方</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
     </main>
   );
