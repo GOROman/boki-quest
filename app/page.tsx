@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Question = {
   category: string;
@@ -35,66 +35,99 @@ export default function Home() {
   const [lives, setLives] = useState(3);
   const [finished, setFinished] = useState(false);
   const [best, setBest] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [soundOn, setSoundOn] = useState(true);
+  const [fx, setFx] = useState<"correct" | "wrong" | "">("");
+  const audioRef = useRef<AudioContext | null>(null);
   const q = questions[index];
 
   useEffect(() => { setBest(Number(localStorage.getItem("boki-quest-best") || 0)); }, []);
   const rank = useMemo(() => score >= 1100 ? "S" : score >= 850 ? "A" : score >= 600 ? "B" : "C", [score]);
 
+  function playSound(kind: "tap" | "correct" | "wrong" | "finish") {
+    if (!soundOn || typeof window === "undefined") return;
+    const ctx = audioRef.current ?? new AudioContext();
+    audioRef.current = ctx;
+    void ctx.resume();
+    const notes = kind === "correct" ? [523, 659, 784] : kind === "finish" ? [523, 659, 784, 1047] : kind === "wrong" ? [220, 165] : [440];
+    notes.forEach((frequency, i) => {
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const start = ctx.currentTime + i * (kind === "finish" ? .11 : .07);
+      const duration = kind === "wrong" ? .16 : .12;
+      oscillator.type = kind === "wrong" ? "triangle" : "sine";
+      oscillator.frequency.setValueAtTime(frequency, start);
+      if (kind === "wrong") oscillator.frequency.exponentialRampToValueAtTime(frequency * .72, start + duration);
+      gain.gain.setValueAtTime(.0001, start);
+      gain.gain.exponentialRampToValueAtTime(kind === "finish" ? .09 : .065, start + .015);
+      gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+      oscillator.connect(gain).connect(ctx.destination);
+      oscillator.start(start);
+      oscillator.stop(start + duration + .02);
+    });
+  }
+
   function choose(choice: number) {
     if (selected !== null) return;
     setSelected(choice);
     if (choice === q.answer) {
+      playSound("correct");
       const gained = 100 + streak * 20;
       setScore((s) => s + gained);
       setStreak((s) => s + 1);
+      setCorrectCount((c) => c + 1);
+      setFx("correct");
     } else {
+      playSound("wrong");
       setStreak(0);
       setLives((l) => Math.max(0, l - 1));
+      setFx("wrong");
     }
+    window.setTimeout(() => setFx(""), 700);
   }
 
   function next() {
     if (index === questions.length - 1 || lives === 0) {
+      playSound("finish");
       const finalScore = score;
       if (finalScore > best) { setBest(finalScore); localStorage.setItem("boki-quest-best", String(finalScore)); }
       setFinished(true);
-    } else { setIndex((i) => i + 1); setSelected(null); }
+    } else { playSound("tap"); setIndex((i) => i + 1); setSelected(null); }
   }
 
-  function restart() { setStarted(true); setFinished(false); setIndex(0); setSelected(null); setScore(0); setStreak(0); setLives(3); }
+  function restart() { playSound("tap"); setStarted(true); setFinished(false); setIndex(0); setSelected(null); setScore(0); setStreak(0); setLives(3); setCorrectCount(0); setFx(""); }
 
   if (!started) return (
-    <main className="shell landing">
-      <header className="topbar"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST <small>日商簿記3級</small></span></div><div className="best">MY BEST <strong>{best.toLocaleString()}</strong></div></header>
-      <section className="hero">
-        <div className="eyebrow">はじめての簿記、いっしょにやろう。</div>
-        <h1>講義のすきまに、<br/><em>簿記力</em>をちょっとずつ。</h1>
-        <p>経済学の学びを、もっと自分のものに。1プレイ約5分、簿記ちゃんと一緒に日商簿記3級の基礎を楽しく身につけよう。</p>
-        <button className="primary" onClick={restart}>簿記ちゃんと始める <span>→</span></button>
-        <div className="features"><span>全10問・約5分</span><span>やさしい解説つき</span><span>スマホでさくっと</span></div>
+    <main className="titleScreen">
+      <img className="titleKeyArt" src="./boki-quest-key-art.png" alt="BOKI QUESTと案内役の簿記ちゃん" />
+      <div className="titleVignette"></div>
+      <header className="titleHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST <small>日商簿記3級</small></span></div><button className="soundToggle" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪ ON" : "♪ OFF"}</button></header>
+      <div className="mobileGameTitle"><b>BOKI QUEST</b><span>講義のすきまに、簿記力をちょっとずつ。</span></div>
+      <section className="startDock">
+        <div className="startInfo"><span>MY BEST <b>{best.toLocaleString()}</b></span><span>10 QUESTIONS</span><span>ABOUT 5 MIN</span></div>
+        <button className="startButton" onClick={restart}><i>▶</i><span>GAME START<small>簿記ちゃんとクエストへ</small></span></button>
+        <p>タップしてスタート</p>
       </section>
-      <aside className="mascotStage" aria-label="案内役の簿記ちゃん">
-        <span className="mascotBubble">今日も5分だけ<br/><b>いっしょに頑張ろう♡</b></span>
-        <img src="./boki-chan-character-sheet.png" alt="帳簿と鉛筆を持ったBOKI QUESTの案内役、簿記ちゃん" />
-      </aside>
-      <footer>© BOKI QUEST — Campus study, made lovely.</footer>
     </main>
   );
 
   if (finished) return (
-    <main className="shell resultPage">
-      <header className="topbar"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST <small>日商簿記3級</small></span></div></header>
-      <section className="resultCard"><div className="resultLabel">QUEST COMPLETE</div><div className="rank">{rank}</div><h1>{lives === 0 ? "修業はつづく！" : "ステージクリア！"}</h1><p>今回のスコア</p><strong className="finalScore">{score.toLocaleString()}</strong><div className="resultStats"><span>正解ペース<b>{Math.round(score / 120)}%</b></span><span>ベストスコア<b>{Math.max(best, score).toLocaleString()}</b></span></div><button className="primary" onClick={restart}>もう一度挑戦する <span>↻</span></button></section>
+    <main className="resultPage resultGameScreen">
+      <div className="confetti" aria-hidden="true">{Array.from({length:28},(_,i)=><i key={i} style={{"--x":`${(i*37)%100}%`,"--d":`${(i%7)*.12}s`,"--r":`${(i*47)%180}deg`} as React.CSSProperties}></i>)}</div>
+      <header className="resultHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><span>RESULT</span></header>
+      <div className="resultCharacter"><img src="./boki-quest-key-art.png" alt="クリアを祝う簿記ちゃん"/><span>{lives === 0 ? "次はもっといけるよ！" : rank === "S" ? "完璧！さすがだね♡" : "おつかれさま！すごいよ♡"}</span></div>
+      <section className="resultCard"><div className="resultLabel">QUEST COMPLETE</div><div className="rank">{rank}</div><h1>{lives === 0 ? "また挑戦しよう！" : "ステージクリア！"}</h1><p>今回のスコア</p><strong className="finalScore">{score.toLocaleString()}</strong><div className="resultStats"><span>正解数<b>{correctCount} / {index + 1}</b></span><span>ベストスコア<b>{Math.max(best, score).toLocaleString()}</b></span></div><button className="primary" onClick={restart}>もう一度挑戦する <span>↻</span></button><button className="backTitle" onClick={() => {playSound("tap");setStarted(false);setFinished(false);}}>タイトルへ戻る</button></section>
     </main>
   );
 
   const correct = selected === q.answer;
   return (
-    <main className="gamePage">
-      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>SCORE <b>{score.toLocaleString()}</b></span><span>STREAK <b>{streak}×</b></span><span className="lives" aria-label={`ライフ ${lives}`}>{[0,1,2].map(i => <i key={i} className={i < lives ? "on" : ""}>♥</i>)}</span></div></header>
+    <main className={`gamePage ${fx ? `fx-${fx}` : ""}`}>
+      {fx === "correct" && <div className="answerBurst" aria-hidden="true">{Array.from({length:14},(_,i)=><i key={i} style={{"--a":`${i*25.7}deg`} as React.CSSProperties}>✦</i>)}</div>}
+      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>SCORE <b>{score.toLocaleString()}</b>{fx === "correct" && <em className="scorePop">+{100 + (streak - 1) * 20}</em>}</span><span>STREAK <b>{streak}×</b></span><span className="lives" aria-label={`ライフ ${lives}`}>{[0,1,2].map(i => <i key={i} className={i < lives ? "on" : ""}>♥</i>)}</span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
       <div className="progress"><i style={{width: `${((index + 1) / questions.length) * 100}%`}}></i></div>
-      <section className="quiz">
-        <div className="questionMeta"><span>QUESTION {String(index + 1).padStart(2,"0")} / {questions.length}</span><b>♡ {q.category}</b></div>
+      <section className="quiz" key={index}>
+        <div className="quizTop"><div className="questionMeta"><span>QUESTION {String(index + 1).padStart(2,"0")} / {questions.length}</span><b>♡ {q.category}</b></div><div className={`quizGuide ${fx}`}><img src="./boki-quest-key-art.png" alt="簿記ちゃん"/><span>{fx === "correct" ? "大正解！" : fx === "wrong" ? "ドンマイ！" : "落ち着いて考えよう♪"}</span></div></div>
         <h1>{q.prompt}</h1>
         <div className="choices">{q.choices.map((choice, i) => {
           const state = selected === null ? "" : i === q.answer ? "correct" : i === selected ? "wrong" : "dim";
