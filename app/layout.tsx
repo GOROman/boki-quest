@@ -13,8 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://goroman.github.io/boki-quest/"),
   title: "BOKI QUEST｜日商簿記3級クイズゲーム",
-  description: "仕訳をゲーム感覚で学べる、日商簿記3級の無料クイズゲーム。",
+  description: "大学生活のすきま時間に、簿記ちゃんと仕訳を楽しく学べる日商簿記3級クイズゲーム。",
+  openGraph: {
+    title: "BOKI QUEST｜講義のすきまに、簿記力をちょっとずつ。",
+    description: "簿記ちゃんと楽しく学べる、日商簿記3級クイズゲーム。",
+    images: ["https://goroman.github.io/boki-quest/og.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BOKI QUEST",
+    description: "講義のすきまに、簿記力をちょっとずつ。",
+    images: ["https://goroman.github.io/boki-quest/og.png"],
+  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

@@ -34,3 +34,53 @@ button { font:inherit; }
 .resultPage{display:grid;place-items:center}.resultPage .topbar{position:absolute;left:6vw;right:6vw;top:28px}.resultCard{text-align:center;background:#fffdf8;border:2px solid var(--ink);box-shadow:12px 12px 0 var(--ink);padding:46px;width:min(560px,88vw)}.resultLabel{margin:0}.rank{font-size:100px;line-height:1.1;font-weight:900;color:var(--red);text-shadow:5px 5px 0 var(--yellow)}.resultCard h1{font-size:30px;margin:0 0 24px}.resultCard>p{font-size:11px;letter-spacing:.15em;margin:0}.finalScore{font-size:45px}.resultStats{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #ddd8cc;border-bottom:1px solid #ddd8cc;margin-top:24px}.resultStats span{padding:17px;font-size:10px;color:#7c8589}.resultStats span:first-child{border-right:1px solid #ddd8cc}.resultStats b{display:block;font-size:18px;color:var(--ink);margin-top:6px}.resultCard .primary{text-align:center}
 @media(max-width:760px){.shell{padding:20px 5vw}.hero{padding:11vh 0}.ledgerArt{opacity:.12;width:80vw;right:-30vw}.hero p{max-width:88%}.hud{gap:14px}.hud>span:nth-child(2){display:none}.gameHeader{padding:14px 4vw}.gameHeader .brand>span:last-child{display:none}.quiz{padding-top:4vh}.choices{grid-template-columns:1fr}.choices button{min-height:66px}.feedback p{margin-right:0;margin-left:0}.journal{margin-left:0;margin-right:0;line-height:1.6}.feedback>button{position:static;width:100%;margin-top:18px}.gameFooter span{display:none}.gameFooter{justify-content:center}.resultCard{padding:34px 22px}.rank{font-size:82px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Soft campus theme — warm, rounded, and easy to return to between classes */
+:root { --ink:#51465c; --paper:#fffaf8; --red:#df7997; --yellow:#f6d98a; --blue:#91a8cf; --green:#79aa9a; --rose:#f8dbe3; --lavender:#e9e3f4; }
+body { background:var(--paper); color:var(--ink); font-family:"Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN","BIZ UDPGothic","Yu Gothic",Meiryo,sans-serif; letter-spacing:.02em; }
+.shell { background-color:#fffaf8; background-image:radial-gradient(circle at 13% 16%,rgba(248,219,227,.8) 0 8%,transparent 8.2%),radial-gradient(circle at 86% 78%,rgba(233,227,244,.75) 0 13%,transparent 13.2%),linear-gradient(rgba(145,168,207,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(145,168,207,.045) 1px,transparent 1px); background-size:auto,auto,34px 34px,34px 34px; }
+.brand { letter-spacing:.06em; color:#65556d; }
+.brandMark { background:linear-gradient(145deg,#e88aa4,#d76e91); border-radius:15px; box-shadow:0 5px 12px rgba(217,112,145,.24); transform:rotate(-4deg); }
+.brand small { color:#967f9d; opacity:1; letter-spacing:.14em; }
+.best { color:#9a849f; border:1px solid #eadde8; border-radius:999px; padding:8px 15px; background:rgba(255,255,255,.72); box-shadow:0 5px 18px rgba(104,77,110,.07); }
+.best strong { color:#d86f91; }
+.hero { max-width:680px; padding-top:10vh; }
+.eyebrow,.resultLabel { display:inline-flex; align-items:center; color:#c16888; background:#fbe9ee; border-radius:999px; padding:8px 14px; font-size:11px; letter-spacing:.08em; margin-bottom:24px; }
+.eyebrow:before { content:"♡"; margin-right:7px; font-size:14px; }
+.hero h1 { color:#51465c; font-size:clamp(44px,6.2vw,78px); line-height:1.15; letter-spacing:-.045em; }
+.hero h1 em { color:#d86f91; }
+.hero h1 em:after { background:#f8d982; height:11px; border-radius:999px; bottom:3px; opacity:.75; }
+.hero p { color:#756879; line-height:2; max-width:570px; font-weight:600; }
+.primary { color:white; background:linear-gradient(135deg,#e784a1,#d76d91); border-radius:999px; padding:19px 25px; box-shadow:0 10px 25px rgba(215,109,145,.28); min-width:290px; text-align:center; }
+.primary:hover { transform:translateY(-2px); box-shadow:0 14px 28px rgba(215,109,145,.32); }
+.primary span { width:29px; height:29px; border-radius:50%; background:rgba(255,255,255,.22); display:grid; place-items:center; font-size:17px; }
+.features span { color:#7e7182; background:rgba(255,255,255,.74); border:1px solid #eee3eb; border-radius:999px; padding:7px 11px; box-shadow:0 4px 12px rgba(91,69,98,.05); }
+.features span:before { color:#df7997; content:"♡"; }
+.ledgerArt { display:none; }
+.mascotStage { position:absolute; z-index:0; right:4vw; bottom:0; width:min(43vw,610px); height:79vh; overflow:hidden; border-radius:48% 48% 0 0; background:linear-gradient(160deg,#fce8ed 0%,#eee9f8 72%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),0 18px 50px rgba(104,77,110,.12); }
+.mascotStage:before,.mascotStage:after { content:"✦"; position:absolute; z-index:2; color:#e49ab0; font-size:30px; }.mascotStage:before{left:8%;top:14%}.mascotStage:after{right:9%;top:36%;color:#e4bd63;font-size:22px}
+.mascotStage img { position:absolute; height:100%; width:100%; object-fit:cover; object-position:left center; mix-blend-mode:multiply; }
+.mascotBubble { position:absolute; z-index:3; right:4%; top:7%; color:#705e76; background:rgba(255,255,255,.93); border:1px solid #eddee8; padding:14px 18px; border-radius:22px 22px 5px 22px; font-size:12px; line-height:1.6; box-shadow:0 8px 24px rgba(104,77,110,.12); transform:rotate(2deg); }.mascotBubble b{color:#d86f91}
+.shell>footer { color:#9a8c9d; opacity:.8; }
+.gamePage { background:linear-gradient(180deg,#fffaf8,#fdf8fb); }
+.gameHeader { border-color:#edE4ea; background:rgba(255,255,255,.76); backdrop-filter:blur(12px); }
+.gameHeader .brandMark { background:linear-gradient(145deg,#e88aa4,#d76e91); }
+.hud>span { color:#a18fa5; }.hud b{color:#62536a}.lives i.on{color:#e27b9a}
+.progress { background:#f1e8ee; }.progress i{background:linear-gradient(90deg,#e889a4,#b79ed1);border-radius:0 999px 999px 0}
+.quiz { width:min(900px,90vw); }
+.questionMeta span { color:#a38fa8; }.questionMeta b{background:#f8e4ea;color:#bd6382;border-radius:999px;padding:8px 14px;transform:none}
+.quiz h1 { color:#584b60; font-weight:800; }
+.choices { gap:16px; }
+.choices button { border:1px solid #e9dfe7; border-radius:20px; box-shadow:0 7px 20px rgba(92,70,98,.06); color:#67596d; font-weight:700; }
+.choices button:hover:not(:disabled) { border-color:#d99bb1; box-shadow:0 10px 24px rgba(215,121,151,.12); }
+.choices button>span { border:0; border-radius:11px; background:#f7edf2; color:#c46988; }
+.choices .correct { border-color:#9cc9b8; background:#f0faf6; color:#477a69; }.choices .wrong{border-color:#e8a9ba;background:#fff3f5;color:#b95d78}
+.feedback { border:1px solid #eadfe8; border-left:1px solid #eadfe8; border-radius:24px; padding:22px 24px; box-shadow:0 12px 34px rgba(86,66,93,.09); }.feedback.good{border-color:#b8d9cd}.feedback.bad{border-color:#efc1cd}
+.feedbackTitle span { background:#77aa99; }.bad .feedbackTitle span{background:#df7997}.feedbackTitle b{color:#65566d}
+.journal { background:#faf4f8; border-radius:12px; padding:10px 12px; color:#746379; }.journal small{border-radius:999px;background:#f0dce5;color:#bd6583}
+.feedback>button { background:linear-gradient(135deg,#75637e,#5c4e65); border-radius:999px; box-shadow:0 6px 15px rgba(79,63,86,.18); }
+.gameFooter { border-color:#eee4eb; color:#9c8da0; }.gameFooter button{color:#a37d90}
+.resultCard { border:1px solid #eadfe8; border-radius:30px; box-shadow:0 20px 55px rgba(91,69,98,.14); background:rgba(255,255,255,.92); }
+.rank { color:#d97393; text-shadow:5px 5px 0 #f9df8f; }.resultStats{border-color:#eee3ea}.resultStats span:first-child{border-color:#eee3ea}
+@media(max-width:900px){.mascotStage{right:-8vw;width:48vw;opacity:.28}.hero{max-width:720px}.hero p{max-width:560px}}
+@media(max-width:760px){.hero{padding-top:8vh;padding-bottom:32vh}.hero h1{font-size:clamp(39px,11vw,56px)}.hero p{max-width:100%;font-size:14px}.mascotStage{opacity:1;right:-8vw;width:82vw;height:38vh;border-radius:50% 0 0 0}.mascotStage img{object-position:left 18%}.mascotBubble{display:none}.features{gap:8px}.features span{font-size:10px}.primary{width:min(100%,330px)}.quiz h1{font-size:23px}.choices button{border-radius:17px}.feedback{border-radius:20px}}

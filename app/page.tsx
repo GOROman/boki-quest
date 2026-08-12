@@ -65,16 +65,19 @@ export default function Home() {
 
   if (!started) return (
     <main className="shell landing">
-      <header className="topbar"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST <small>日商簿記3級</small></span></div><div className="best">BEST <strong>{best.toLocaleString()}</strong></div></header>
+      <header className="topbar"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST <small>日商簿記3級</small></span></div><div className="best">MY BEST <strong>{best.toLocaleString()}</strong></div></header>
       <section className="hero">
-        <div className="eyebrow">PLAY. LEARN. MASTER.</div>
-        <h1>仕訳を制して、<br/><em>合格</em>をつかめ。</h1>
-        <p>1プレイ約5分。問題を解きながら、日商簿記3級の基礎を身につけるクイズゲーム。</p>
-        <button className="primary" onClick={restart}>クエストを始める <span>→</span></button>
-        <div className="features"><span>全10問</span><span>解説つき</span><span>ベストスコア保存</span></div>
+        <div className="eyebrow">はじめての簿記、いっしょにやろう。</div>
+        <h1>講義のすきまに、<br/><em>簿記力</em>をちょっとずつ。</h1>
+        <p>経済学の学びを、もっと自分のものに。1プレイ約5分、簿記ちゃんと一緒に日商簿記3級の基礎を楽しく身につけよう。</p>
+        <button className="primary" onClick={restart}>簿記ちゃんと始める <span>→</span></button>
+        <div className="features"><span>全10問・約5分</span><span>やさしい解説つき</span><span>スマホでさくっと</span></div>
       </section>
-      <aside className="ledgerArt" aria-label="ゲームのイメージ"><div className="stamp">LEVEL<br/><b>3</b></div><div className="paper"><span>JOURNAL</span><b>借 方</b><i></i><b>貸 方</b><i></i><i></i><i></i><strong>¥</strong></div></aside>
-      <footer>© BOKI QUEST — 簿記を、もっと楽しく。</footer>
+      <aside className="mascotStage" aria-label="案内役の簿記ちゃん">
+        <span className="mascotBubble">今日も5分だけ<br/><b>いっしょに頑張ろう♡</b></span>
+        <img src="./boki-chan-character-sheet.png" alt="帳簿と鉛筆を持ったBOKI QUESTの案内役、簿記ちゃん" />
+      </aside>
+      <footer>© BOKI QUEST — Campus study, made lovely.</footer>
     </main>
   );
 
@@ -91,15 +94,15 @@ export default function Home() {
       <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>SCORE <b>{score.toLocaleString()}</b></span><span>STREAK <b>{streak}×</b></span><span className="lives" aria-label={`ライフ ${lives}`}>{[0,1,2].map(i => <i key={i} className={i < lives ? "on" : ""}>♥</i>)}</span></div></header>
       <div className="progress"><i style={{width: `${((index + 1) / questions.length) * 100}%`}}></i></div>
       <section className="quiz">
-        <div className="questionMeta"><span>QUESTION {String(index + 1).padStart(2,"0")} / {questions.length}</span><b>{q.category}</b></div>
+        <div className="questionMeta"><span>QUESTION {String(index + 1).padStart(2,"0")} / {questions.length}</span><b>♡ {q.category}</b></div>
         <h1>{q.prompt}</h1>
         <div className="choices">{q.choices.map((choice, i) => {
           const state = selected === null ? "" : i === q.answer ? "correct" : i === selected ? "wrong" : "dim";
           return <button key={choice} className={state} onClick={() => choose(i)} disabled={selected !== null}><span>{letters[i]}</span>{choice}<i>{state === "correct" ? "✓" : state === "wrong" ? "×" : ""}</i></button>;
         })}</div>
-        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? `正解！ ${100 + (streak - 1) * 20} pt` : "おしい！ 正解を確認しよう"}</b></div><p>{q.explanation}</p><div className="journal"><small>仕訳</small>{q.journal}</div><button onClick={next}>{index === questions.length - 1 || lives === 0 ? "結果を見る" : "次の問題へ"} →</button></div>}
+        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? `すごい、正解！ ${100 + (streak - 1) * 20} pt` : "大丈夫。ここで覚えればOK！"}</b></div><p>{q.explanation}</p><div className="journal"><small>簿記ちゃんメモ</small>{q.journal}</div><button onClick={next}>{index === questions.length - 1 || lives === 0 ? "結果を見る" : "次の問題へ"} →</button></div>}
       </section>
-      <footer className="gameFooter"><span>ヒント：資産・費用の増加は借方、負債・純資産・収益の増加は貸方</span><button onClick={() => setStarted(false)}>終了する</button></footer>
+      <footer className="gameFooter"><span>簿記ちゃんヒント：資産・費用の増加は借方、負債・純資産・収益の増加は貸方</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
     </main>
   );
 }
