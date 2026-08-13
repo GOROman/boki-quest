@@ -11,26 +11,51 @@ type Question = {
   journal: string;
 };
 
-type Lesson = {
+type StudyPage = {
   title: string;
-  goal: string;
-  rule: string;
+  subtitle: string;
+  paragraphs: string[];
+  points: string[];
   example: string;
-  tip: string;
+  note: string;
 };
 
-const lessons: Lesson[] = [
-  { title:"仕訳の第一歩", goal:"借方と貸方の位置を覚えよう", rule:"仕訳は左が借方、右が貸方。左右の金額は必ず同じになります。", example:"（借）仕入 30,000 ／（貸）現金 30,000", tip:"まずは『左＝借、右＝貸』だけ覚えればOK！" },
-  { title:"資産と収益", goal:"売掛金と売上の違いを理解しよう", rule:"売掛金は後で代金を受け取る権利＝資産。売上はもうけの原因＝収益です。", example:"（借）売掛金 50,000 ／（貸）売上 50,000", tip:"資産の増加は左、収益の増加は右です。" },
-  { title:"固定資産", goal:"長く使うものの仕訳を学ぼう", rule:"机やパソコンなど長期間使うものは、費用ではなく『備品』という資産です。", example:"（借）備品 120,000 ／（貸）普通預金 120,000", tip:"すぐ使い切る？長く使う？で考えよう。" },
-  { title:"費用の発生", goal:"家賃などの経費を仕訳しよう", rule:"家賃や水道光熱費など、事業のために使った金額は費用。費用の発生は借方です。", example:"（借）支払家賃 80,000 ／（貸）現金 80,000", tip:"費用が増えたら左側！" },
-  { title:"負債の減少", goal:"買掛金を支払う仕訳を覚えよう", rule:"買掛金は後で代金を払う義務＝負債。支払うと義務が減るので借方です。", example:"（借）買掛金 45,000 ／（貸）普通預金 45,000", tip:"負債は増加が右、減少が左です。" },
-  { title:"純資産", goal:"資本金の意味を理解しよう", rule:"事業を始めるために出資した元手は『資本金』。純資産の増加は貸方です。", example:"（借）現金 500,000 ／（貸）資本金 500,000", tip:"自分で用意した元手は借金ではありません。" },
-  { title:"借入金", goal:"資産と負債の同時増加を学ぼう", rule:"銀行から借りると預金という資産と、返済義務である借入金が同時に増えます。", example:"（借）普通預金 300,000 ／（貸）借入金 300,000", tip:"お金が増えても、同時に返す義務も増えます。" },
-  { title:"減価償却", goal:"固定資産を期間配分しよう", rule:"備品の取得額は、使う期間に分けて費用にします。間接法では累計額を貸方に記入します。", example:"（借）減価償却費 20,000 ／（貸）備品減価償却累計額 20,000", tip:"今年使った分だけを費用にするイメージ。" },
-  { title:"試算表", goal:"複式簿記のチェック方法を学ぼう", rule:"すべての仕訳は借方と貸方が同額なので、試算表でも双方の合計は一致します。", example:"借方合計 ＝ 貸方合計", tip:"一致しなければ、どこかに記入ミスがあります。" },
-  { title:"貸倒れ", goal:"回収できない売掛金を処理しよう", rule:"売掛金が回収不能になり、引当金がなければ『貸倒損失』という費用にします。", example:"（借）貸倒損失 15,000 ／（貸）売掛金 15,000", tip:"最後のテスト！損失は費用なので借方です。" },
+const studyPages: StudyPage[] = [
+  { title:"簿記って何のため？", subtitle:"会社のお金の動きを、共通ルールで記録する", paragraphs:["簿記は、会社で起きた取引を記録し、経営成績と財政状態を明らかにする技術です。商品を売る、家賃を払う、銀行から借りる。こうした出来事をすべて金額で記録します。","記録の最小単位が仕訳です。一つの取引を借方と貸方の二面から捉えるため、これを複式簿記と呼びます。"], points:["取引＝会社の資産・負債・純資産・収益・費用を増減させる出来事","仕訳＝取引を借方と貸方に分ける作業","借方合計と貸方合計は必ず一致する"], example:"商品を現金30,000円で仕入れた →（借）仕入 30,000 ／（貸）現金 30,000", note:"最初は左右の意味より『一つの出来事を二つの面で記録する』と考えよう。" },
+  { title:"5つのグループを覚えよう", subtitle:"勘定科目は、すべて5要素のどれかに入る", paragraphs:["勘定科目とは、現金・売上・仕入など、取引内容を表す名前です。すべての勘定科目は、資産・負債・純資産・収益・費用の5要素に分類できます。","資産は会社が持つ財産、負債は返済などの義務、純資産は返済不要の元手です。収益は利益を増やす原因、費用は利益を減らす原因になります。"], points:["資産：現金、普通預金、売掛金、備品","負債：買掛金、借入金、未払金","純資産：資本金／収益：売上／費用：仕入、支払家賃"], example:"売掛金は『後で代金を受け取る権利』なので資産。買掛金は『後で支払う義務』なので負債。", note:"科目名を見たら、まず5つの箱のどこに入るか考えるのがコツ！" },
+  { title:"借方・貸方のルール", subtitle:"5要素ごとの増加・減少の位置を理解する", paragraphs:["借方は仕訳の左側、貸方は右側です。日常語の『借りる・貸す』とは意味が違うため、左右を示す専門用語として覚えます。","資産と費用は増加を借方に、負債・純資産・収益は増加を貸方に記録します。減少するときは、それぞれ反対側です。"], points:["借方で増える：資産・費用","貸方で増える：負債・純資産・収益","減少は増加の反対側に記録"], example:"現金で家賃を払う → 費用の増加は借方、資産の減少は貸方 →（借）支払家賃 ／（貸）現金", note:"『し・ひ は左』＝資産・費用は借方、と覚えると便利です。" },
+  { title:"よく出る取引を仕訳しよう", subtitle:"現金取引・掛取引・資金調達をパターンで整理", paragraphs:["掛取引は、商品の受け渡しと代金の決済を別のタイミングで行う取引です。販売した側は売掛金、仕入れた側は買掛金を使います。","銀行からの借入れでは普通預金と借入金が同時に増えます。出資を受けた場合は、返済義務がないため借入金ではなく資本金を使います。"], points:["掛けで売る：（借）売掛金 ／（貸）売上","掛けで仕入れる：（借）仕入 ／（貸）買掛金","借入れ：（借）普通預金 ／（貸）借入金"], example:"買掛金45,000円を普通預金から支払う →（借）買掛金 45,000 ／（貸）普通預金 45,000", note:"『何が増えた？何が減った？』を一つずつ言葉にしてから仕訳しよう。" },
+  { title:"決算と試算表の基礎", subtitle:"記録をまとめ、正しさを確かめる", paragraphs:["試算表は、各勘定科目の記録を集計した一覧表です。複式簿記では借方と貸方を同額で記録するため、試算表の双方の合計も一致します。","決算では、正しい利益と財産の状態を示すために決算整理を行います。減価償却は固定資産の取得額を使用期間に配分する処理です。回収不能となった売掛金は貸倒損失として処理します。"], points:["試算表：仕訳や転記の正確性を確かめる表","減価償却：固定資産の価値減少を各期の費用にする","貸倒損失：回収できない売掛金などを費用にする"], example:"減価償却（間接法）→（借）減価償却費 ／（貸）備品減価償却累計額", note:"ここまで読めば準備完了！次は10問テストでレベル10を目指そう。" },
 ];
+
+const glossary: Record<string,string> = {
+  "複式簿記":"一つの取引を借方と貸方の両面から、同じ金額で記録する方法。",
+  "経営成績":"一定期間にどれだけ利益または損失が出たかという会社の成果。",
+  "財政状態":"ある時点で会社が持つ財産と、返済義務・元手の状況。",
+  "決算整理":"正しい利益と財産を示すため、決算時に記録を修正・追加する手続き。",
+  "減価償却":"固定資産の取得額を、使用する複数の期間に分けて費用にする処理。",
+  "貸倒損失":"売掛金などが回収できなくなったときに計上する費用。",
+  "固定資産":"備品や建物など、営業のために長期間使用する資産。",
+  "試算表":"各勘定科目を集計し、借方・貸方の合計などを確認する一覧表。",
+  "勘定科目":"取引内容を分類して記録するための名前。例：現金、売上、仕入。",
+  "売掛金":"商品を掛けで販売し、代金を後日受け取る権利。資産に分類される。",
+  "買掛金":"商品を掛けで仕入れ、代金を後日支払う義務。負債に分類される。",
+  "純資産":"資産から負債を差し引いた、返済する必要のない会社の正味財産。",
+  "借方":"仕訳の左側。資産・費用の増加などを記録する側。",
+  "貸方":"仕訳の右側。負債・純資産・収益の増加などを記録する側。",
+  "仕訳":"取引を借方と貸方に分け、勘定科目と金額で記録すること。",
+  "取引":"簿記上、会社の財産や利益の要素を増減させる出来事。",
+  "資産":"現金や売掛金など、会社が持つ財産や権利。",
+  "負債":"借入金や買掛金など、将来支払う義務。",
+  "収益":"売上など、利益を増加させる原因。",
+  "費用":"仕入や家賃など、利益を減少させる原因。",
+};
+
+function Terms({text}:{text:string}) {
+  const words = Object.keys(glossary).sort((a,b)=>b.length-a.length);
+  const pattern = new RegExp(`(${words.join("|")})`,"g");
+  return <>{text.split(pattern).map((part,i)=>glossary[part] ? <span role="button" tabIndex={0} className="term" aria-label={`${part}：${glossary[part]}`} key={`${part}-${i}`}>{part}<span role="tooltip">{glossary[part]}</span></span> : part)}</>;
+}
 
 const questions: Question[] = [
   { category: "現金・預金", prompt: "商品を現金 ¥30,000 で仕入れた。正しい仕訳は？", choices: ["（借）仕入 30,000 ／（貸）現金 30,000", "（借）現金 30,000 ／（貸）仕入 30,000", "（借）商品 30,000 ／（貸）売上 30,000", "（借）売上 30,000 ／（貸）現金 30,000"], answer: 0, explanation: "商品を仕入れたときは費用の「仕入」が増加するため借方。現金の減少は貸方です。", journal: "仕入 30,000｜現金 30,000" },
@@ -51,6 +76,7 @@ export default function Home() {
   const [started, setStarted] = useState(false);
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<"study" | "test">("study");
+  const [studyPage, setStudyPage] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
@@ -61,7 +87,6 @@ export default function Home() {
   const [fx, setFx] = useState<"correct" | "wrong" | "">("");
   const audioRef = useRef<AudioContext | null>(null);
   const q = questions[index];
-  const lesson = lessons[index];
 
   useEffect(() => { setBest(Number(localStorage.getItem("boki-quest-best") || 0)); }, []);
   const rank = useMemo(() => mistakes === 0 ? "S" : mistakes <= 2 ? "A" : mistakes <= 5 ? "B" : "C", [mistakes]);
@@ -108,7 +133,6 @@ export default function Home() {
   function next() {
     if (selected !== q.answer) {
       playSound("tap");
-      setPhase("study");
       setSelected(null);
       return;
     }
@@ -120,7 +144,7 @@ export default function Home() {
     } else { playSound("tap"); setIndex((i) => i + 1); setSelected(null); setPhase("study"); }
   }
 
-  function restart() { playSound("tap"); setStarted(true); setFinished(false); setIndex(0); setPhase("study"); setSelected(null); setScore(0); setMistakes(0); setCorrectCount(0); setFx(""); }
+  function restart() { playSound("tap"); setStarted(true); setFinished(false); setIndex(0); setStudyPage(0); setPhase("study"); setSelected(null); setScore(0); setMistakes(0); setCorrectCount(0); setFx(""); }
 
   if (!started) return (
     <main className="titleScreen">
@@ -148,22 +172,23 @@ export default function Home() {
   const correct = selected === q.answer;
   if (phase === "study") return (
     <main className="gamePage studyPage">
-      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>LEVEL <b>{index + 1} / 10</b></span><span>SCORE <b>{score.toLocaleString()}</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
-      <div className="levelRail" aria-label={`レベル${index + 1}`}>
-        {lessons.map((item,i)=><i key={item.title} className={i < index ? "done" : i === index ? "current" : ""}><span>{i < index ? "✓" : i + 1}</span></i>)}
+      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>STUDY <b>{studyPage + 1} / 5</b></span><span>NEXT <b>10 TESTS</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
+      <div className="studyPager" aria-label={`勉強ページ${studyPage + 1}`}>
+        {studyPages.map((item,i)=><button key={item.title} className={i < studyPage ? "done" : i === studyPage ? "current" : ""} onClick={()=>{playSound("tap");setStudyPage(i)}}><span>{i < studyPage ? "✓" : i + 1}</span><b>{item.title}</b></button>)}
       </div>
       <section className="lessonCard">
         <div className="phaseBadge study">STUDY PHASE</div>
-        <p className="levelLabel">LEVEL {String(index + 1).padStart(2,"0")}</p>
-        <h1>{lesson.title}</h1>
-        <h2>{lesson.goal}</h2>
-        <div className="lessonRule"><small>今日の基本</small><p>{lesson.rule}</p></div>
-        <div className="lessonExample"><small>仕訳例</small><strong>{lesson.example}</strong></div>
-        <div className="lessonTip">♡ 簿記ちゃんメモ　{lesson.tip}</div>
-        <button className="lessonStart" onClick={() => {playSound("tap");setPhase("test");}}>テストに挑戦 <span>→</span></button>
+        <p className="levelLabel">LESSON {String(studyPage + 1).padStart(2,"0")} / 05</p>
+        <h1><Terms text={studyPages[studyPage].title}/></h1>
+        <h2><Terms text={studyPages[studyPage].subtitle}/></h2>
+        <div className="lessonBody">{studyPages[studyPage].paragraphs.map(p=><p key={p}><Terms text={p}/></p>)}</div>
+        <div className="lessonRule"><small>ここを覚えよう</small><ul>{studyPages[studyPage].points.map(p=><li key={p}><Terms text={p}/></li>)}</ul></div>
+        <div className="lessonExample"><small>具体例</small><strong><Terms text={studyPages[studyPage].example}/></strong></div>
+        <div className="lessonTip">♡ 簿記ちゃんメモ　<Terms text={studyPages[studyPage].note}/></div>
+        <div className="lessonNav"><button disabled={studyPage === 0} onClick={()=>{playSound("tap");setStudyPage(p=>p-1)}}>← 前のページ</button><button className="lessonStart" onClick={() => {playSound("tap"); if(studyPage === studyPages.length-1){setPhase("test");setIndex(0)}else setStudyPage(p=>p+1);}}>{studyPage === studyPages.length-1 ? "10問テストを始める" : "次のページ"} <span>→</span></button></div>
       </section>
-      <aside className="studyMascot"><span>ここを覚えれば<br/><b>テストもばっちり！</b></span><div><img src="./boki-chan-character-sheet.png" alt="ポイントを教える簿記ちゃん"/></div></aside>
-      <footer className="gameFooter"><span>勉強フェーズで基本を覚えて、テストフェーズでレベルアップ！</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
+      <aside className="studyMascot"><span>点線の専門用語に<br/><b>触れると解説が出るよ！</b></span><div><img src="./boki-chan-character-sheet.png" alt="ポイントを教える簿記ちゃん"/></div></aside>
+      <footer className="gameFooter"><span>全5ページを学んだら、10問テストでレベル10を目指そう！</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
     </main>
   );
 
@@ -174,12 +199,12 @@ export default function Home() {
       <div className="progress"><i style={{width: `${((index + 1) / questions.length) * 100}%`}}></i></div>
       <section className="quiz" key={index}>
         <div className="questionMeta"><span><i className="phaseBadge test">TEST PHASE</i> LEVEL {String(index + 1).padStart(2,"0")}</span><b>♡ {q.category}</b></div>
-        <h1>{q.prompt}</h1>
+        <h1><Terms text={q.prompt}/></h1>
         <div className="choices">{q.choices.map((choice, i) => {
           const state = selected === null ? "" : i === q.answer ? "correct" : i === selected ? "wrong" : "dim";
-          return <button key={choice} className={state} onClick={() => choose(i)} disabled={selected !== null}><span>{letters[i]}</span>{choice}<i>{state === "correct" ? "✓" : state === "wrong" ? "×" : ""}</i></button>;
+          return <button key={choice} className={state} onClick={() => choose(i)} disabled={selected !== null}><span>{letters[i]}</span><Terms text={choice}/><i>{state === "correct" ? "✓" : state === "wrong" ? "×" : ""}</i></button>;
         })}</div>
-        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? "LEVEL CLEAR！ +100 pt" : "もう一度勉強フェーズで復習しよう"}</b></div><p>{q.explanation}</p><div className="journal"><small>簿記ちゃんメモ</small>{q.journal}</div><button onClick={next}>{correct ? (index === questions.length - 1 ? "コース結果を見る" : `レベル${index + 2}へ`) : "復習する"} →</button></div>}
+        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? "LEVEL CLEAR！ +100 pt" : "解説を確認して、同じ問題に再挑戦しよう"}</b></div><p><Terms text={q.explanation}/></p><div className="journal"><small>簿記ちゃんメモ</small><Terms text={q.journal}/></div><button onClick={next}>{correct ? (index === questions.length - 1 ? "コース結果を見る" : `レベル${index + 2}へ`) : "もう一度挑戦"} →</button></div>}
       </section>
       <aside className={`gameMascot ${selected === null ? "neutral" : correct ? "correct" : "wrong"}`} aria-live="polite">
         <span className="mascotTalk">{selected === null ? "焦らずいこう♪" : correct ? "大正解！さすが♡" : "大丈夫、次で取り返そう！"}</span>
