@@ -28,6 +28,41 @@ const studyPages: StudyPage[] = [
   { title:"決算と試算表の基礎", subtitle:"記録をまとめ、正しさを確かめる", paragraphs:["試算表は、各勘定科目の記録を集計した一覧表です。複式簿記では借方と貸方を同額で記録するため、試算表の双方の合計も一致します。","決算では、正しい利益と財産の状態を示すために決算整理を行います。減価償却は固定資産の取得額を使用期間に配分する処理です。回収不能となった売掛金は貸倒損失として処理します。"], points:["試算表：仕訳や転記の正確性を確かめる表","減価償却：固定資産の価値減少を各期の費用にする","貸倒損失：回収できない売掛金などを費用にする"], example:"減価償却（間接法）→（借）減価償却費 ／（貸）備品減価償却累計額", note:"ここまで読めば準備完了！次は10問テストでレベル10を目指そう。" },
 ];
 
+const levelTracks = [
+  { title:"簿記の入口", subtitle:"取引・仕訳・5要素の全体像", focus:["簿記の目的と取引","仕訳と複式簿記","資産・負債・純資産","収益・費用","借方と貸方の基本"] },
+  { title:"現金と預金", subtitle:"身近なお金の増減を記録する", focus:["現金の範囲","現金過不足","普通預金と当座預金","小口現金","入出金の仕訳"] },
+  { title:"商品売買", subtitle:"仕入と売上の基本パターン", focus:["三分法","仕入の仕訳","売上の仕訳","返品と値引き","売上原価の考え方"] },
+  { title:"掛取引", subtitle:"売掛金・買掛金を使いこなす", focus:["掛取引の意味","売掛金の発生と回収","買掛金の発生と支払","前払金と前受金","未収入金と未払金"] },
+  { title:"手形と電子記録", subtitle:"期日のある債権・債務を学ぶ", focus:["約束手形","受取手形","支払手形","電子記録債権","電子記録債務"] },
+  { title:"固定資産", subtitle:"長く使う資産と減価償却", focus:["固定資産の取得","付随費用","減価償却","売却の仕訳","固定資産台帳"] },
+  { title:"資金調達と税金", subtitle:"借入れ・資本金・税金の処理", focus:["借入金","利息の支払","資本金","引出金","消費税と法人税等"] },
+  { title:"その他の取引", subtitle:"経費・貸付け・貸倒れを整理", focus:["主要な経費","貸付金と借入金","仮払金と仮受金","立替金と預り金","貸倒れ"] },
+  { title:"帳簿と試算表", subtitle:"記録を集計して正しさを確認", focus:["仕訳帳","総勘定元帳","補助簿","試算表","伝票会計"] },
+  { title:"決算マスター", subtitle:"決算整理から財務諸表まで", focus:["決算整理","貸倒引当金","減価償却の決算整理","精算表","損益計算書と貸借対照表"] },
+] as const;
+
+function levelStudyPages(level:number): StudyPage[] {
+  const track = levelTracks[level];
+  return track.focus.map((focus,i) => {
+    const base = studyPages[i];
+    return {
+      title: focus,
+      subtitle: `${track.title}：${i + 1}つ目のポイント`,
+      paragraphs: [
+        `レベル${level + 1}では「${track.subtitle}」を身につけます。このページのテーマは${focus}です。用語の意味と、取引によって何が増減するのかを結びつけて理解しましょう。`,
+        base.paragraphs[i % base.paragraphs.length],
+      ],
+      points: [
+        `${focus}を5要素のどれに分類するか確認する`,
+        `増加・減少を判断して借方と貸方を決める`,
+        base.points[i % base.points.length],
+      ],
+      example: base.example,
+      note: `${focus}は丸暗記せず、『何が増え、何が減ったか』から考えよう。`,
+    };
+  });
+}
+
 const glossary: Record<string,string> = {
   "複式簿記":"一つの取引を借方と貸方の両面から、同じ金額で記録する方法。",
   "経営成績":"一定期間にどれだけ利益または損失が出たかという会社の成果。",
@@ -74,6 +109,8 @@ const letters = ["A", "B", "C", "D"];
 
 export default function Home() {
   const [started, setStarted] = useState(false);
+  const [level, setLevel] = useState(0);
+  const [unlockedLevel, setUnlockedLevel] = useState(0);
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<"study" | "test">("study");
   const [studyPage, setStudyPage] = useState(0);
@@ -81,14 +118,22 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [levelUp, setLevelUp] = useState(false);
   const [best, setBest] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [soundOn, setSoundOn] = useState(true);
   const [fx, setFx] = useState<"correct" | "wrong" | "">("");
   const audioRef = useRef<AudioContext | null>(null);
-  const q = questions[index];
+  const q = questions[(index + level) % questions.length];
+  const activeStudyPages = levelStudyPages(level);
+  const track = levelTracks[level];
 
-  useEffect(() => { setBest(Number(localStorage.getItem("boki-quest-best") || 0)); }, []);
+  useEffect(() => {
+    setBest(Number(localStorage.getItem("boki-quest-best") || 0));
+    const savedLevel = Math.min(9, Number(localStorage.getItem("boki-quest-level") || 0));
+    setUnlockedLevel(savedLevel);
+    setLevel(savedLevel);
+  }, []);
   const rank = useMemo(() => mistakes === 0 ? "S" : mistakes <= 2 ? "A" : mistakes <= 5 ? "B" : "C", [mistakes]);
 
   function playSound(kind: "tap" | "correct" | "wrong" | "finish") {
@@ -140,11 +185,20 @@ export default function Home() {
       playSound("finish");
       const finalScore = score + 100;
       if (finalScore > best) { setBest(finalScore); localStorage.setItem("boki-quest-best", String(finalScore)); }
-      setFinished(true);
-    } else { playSound("tap"); setIndex((i) => i + 1); setSelected(null); setPhase("study"); }
+      if (level === levelTracks.length - 1) {
+        localStorage.setItem("boki-quest-level", "9");
+        setFinished(true);
+      } else {
+        const nextLevel = level + 1;
+        setUnlockedLevel((v) => Math.max(v, nextLevel));
+        localStorage.setItem("boki-quest-level", String(nextLevel));
+        setLevelUp(true);
+      }
+    } else { playSound("tap"); setIndex((i) => i + 1); setSelected(null); }
   }
 
-  function restart() { playSound("tap"); setStarted(true); setFinished(false); setIndex(0); setStudyPage(0); setPhase("study"); setSelected(null); setScore(0); setMistakes(0); setCorrectCount(0); setFx(""); }
+  function resetLevel(targetLevel = unlockedLevel) { setLevel(targetLevel); setIndex(0); setStudyPage(0); setPhase("study"); setSelected(null); setCorrectCount(0); setFx(""); setLevelUp(false); }
+  function restart() { playSound("tap"); setStarted(true); setFinished(false); setScore(0); setMistakes(0); resetLevel(unlockedLevel); }
 
   if (!started) return (
     <main className="titleScreen">
@@ -153,10 +207,18 @@ export default function Home() {
       <header className="titleHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST <small>日商簿記3級</small></span></div><button className="soundToggle" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪ ON" : "♪ OFF"}</button></header>
       <div className="mobileGameTitle"><b>BOKI QUEST</b><span>講義のすきまに、簿記力をちょっとずつ。</span></div>
       <section className="startDock">
-        <div className="startInfo"><span>MY BEST <b>{best.toLocaleString()}</b></span><span>10 LEVELS</span><span>STUDY ＋ TEST</span></div>
-        <button className="startButton" onClick={restart}><i>▶</i><span>GAME START<small>簿記ちゃんとクエストへ</small></span></button>
+        <div className="startInfo"><span>MY BEST <b>{best.toLocaleString()}</b></span><span>LEVEL {unlockedLevel + 1} / 10</span><span>5 STUDIES ＋ 10 TESTS</span></div>
+        <button className="startButton" onClick={restart}><i>▶</i><span>{unlockedLevel > 0 ? "CONTINUE" : "GAME START"}<small>レベル{unlockedLevel + 1}「{levelTracks[unlockedLevel].title}」から</small></span></button>
         <p>タップしてスタート</p>
       </section>
+    </main>
+  );
+
+  if (levelUp) return (
+    <main className="resultPage levelUpScreen">
+      <div className="confetti" aria-hidden="true">{Array.from({length:24},(_,i)=><i key={i} style={{"--x":`${(i*41)%100}%`,"--d":`${(i%6)*.1}s`,"--r":`${(i*53)%180}deg`} as React.CSSProperties}></i>)}</div>
+      <div className="levelUpCharacter"><img src="./boki-chan-character-sheet.png" alt="レベルアップを喜ぶ簿記ちゃん"/></div>
+      <section className="levelUpCard"><span>10 / 10 TEST CLEAR</span><p>LEVEL</p><strong>{level + 1}</strong><i>→</i><strong>{level + 2}</strong><h1>LEVEL UP!</h1><h2>次は「{levelTracks[level + 1].title}」</h2><p>{levelTracks[level + 1].subtitle}</p><button className="primary" onClick={()=>{playSound("tap");resetLevel(level + 1);}}>次のレベルを学ぶ <b>→</b></button></section>
     </main>
   );
 
@@ -164,47 +226,47 @@ export default function Home() {
     <main className="resultPage resultGameScreen">
       <div className="confetti" aria-hidden="true">{Array.from({length:28},(_,i)=><i key={i} style={{"--x":`${(i*37)%100}%`,"--d":`${(i%7)*.12}s`,"--r":`${(i*47)%180}deg`} as React.CSSProperties}></i>)}</div>
       <header className="resultHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><span>RESULT</span></header>
-      <div className="resultCharacter"><img src="./boki-quest-key-art.png" alt="クリアを祝う簿記ちゃん"/><span>{rank === "S" ? "全問一発クリア！完璧♡" : "レベル10クリア、おめでとう♡"}</span></div>
-      <section className="resultCard"><div className="resultLabel">LEVEL 10 COMPLETE</div><div className="rank">{rank}</div><h1>コースクリア！</h1><p>習得スコア</p><strong className="finalScore">{score.toLocaleString()}</strong><div className="resultStats"><span>クリアレベル<b>{correctCount} / 10</b></span><span>復習回数<b>{mistakes} 回</b></span></div><button className="primary" onClick={restart}>もう一度学ぶ <span>↻</span></button><button className="backTitle" onClick={() => {playSound("tap");setStarted(false);setFinished(false);}}>タイトルへ戻る</button></section>
+      <div className="resultCharacter"><img src="./boki-quest-key-art.png" alt="クリアを祝う簿記ちゃん"/><span>全10レベル制覇、おめでとう♡</span></div>
+      <section className="resultCard"><div className="resultLabel">ALL 10 LEVELS COMPLETE</div><div className="rank">{rank}</div><h1>完全クリア！</h1><p>総合スコア</p><strong className="finalScore">{score.toLocaleString()}</strong><div className="resultStats"><span>クリアテスト<b>100 問</b></span><span>復習回数<b>{mistakes} 回</b></span></div><button className="primary" onClick={()=>{playSound("tap");localStorage.setItem("boki-quest-level","0");setUnlockedLevel(0);setFinished(false);setScore(0);setMistakes(0);resetLevel(0);}}>レベル1から復習 <span>↻</span></button><button className="backTitle" onClick={() => {playSound("tap");setStarted(false);setFinished(false);}}>タイトルへ戻る</button></section>
     </main>
   );
 
   const correct = selected === q.answer;
   if (phase === "study") return (
     <main className="gamePage studyPage">
-      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>STUDY <b>{studyPage + 1} / 5</b></span><span>NEXT <b>10 TESTS</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
+      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>LEVEL <b>{level + 1} / 10</b></span><span>STUDY <b>{studyPage + 1} / 5</b></span><span>NEXT <b>10 TESTS</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
       <div className="studyPager" aria-label={`勉強ページ${studyPage + 1}`}>
-        {studyPages.map((item,i)=><button key={item.title} className={i < studyPage ? "done" : i === studyPage ? "current" : ""} onClick={()=>{playSound("tap");setStudyPage(i)}}><span>{i < studyPage ? "✓" : i + 1}</span><b>{item.title}</b></button>)}
+        {activeStudyPages.map((item,i)=><button key={item.title} className={i < studyPage ? "done" : i === studyPage ? "current" : ""} onClick={()=>{playSound("tap");setStudyPage(i)}}><span>{i < studyPage ? "✓" : i + 1}</span><b>{item.title}</b></button>)}
       </div>
       <section className="lessonCard">
         <div className="phaseBadge study">STUDY PHASE</div>
-        <p className="levelLabel">LESSON {String(studyPage + 1).padStart(2,"0")} / 05</p>
-        <h1><Terms text={studyPages[studyPage].title}/></h1>
-        <h2><Terms text={studyPages[studyPage].subtitle}/></h2>
-        <div className="lessonBody">{studyPages[studyPage].paragraphs.map(p=><p key={p}><Terms text={p}/></p>)}</div>
-        <div className="lessonRule"><small>ここを覚えよう</small><ul>{studyPages[studyPage].points.map(p=><li key={p}><Terms text={p}/></li>)}</ul></div>
-        <div className="lessonExample"><small>具体例</small><strong><Terms text={studyPages[studyPage].example}/></strong></div>
-        <div className="lessonTip">♡ 簿記ちゃんメモ　<Terms text={studyPages[studyPage].note}/></div>
-        <div className="lessonNav"><button disabled={studyPage === 0} onClick={()=>{playSound("tap");setStudyPage(p=>p-1)}}>← 前のページ</button><button className="lessonStart" onClick={() => {playSound("tap"); if(studyPage === studyPages.length-1){setPhase("test");setIndex(0)}else setStudyPage(p=>p+1);}}>{studyPage === studyPages.length-1 ? "10問テストを始める" : "次のページ"} <span>→</span></button></div>
+        <p className="levelLabel">LEVEL {String(level + 1).padStart(2,"0")}　LESSON {String(studyPage + 1).padStart(2,"0")} / 05</p>
+        <h1><Terms text={activeStudyPages[studyPage].title}/></h1>
+        <h2><Terms text={activeStudyPages[studyPage].subtitle}/></h2>
+        <div className="lessonBody">{activeStudyPages[studyPage].paragraphs.map(p=><p key={p}><Terms text={p}/></p>)}</div>
+        <div className="lessonRule"><small>ここを覚えよう</small><ul>{activeStudyPages[studyPage].points.map(p=><li key={p}><Terms text={p}/></li>)}</ul></div>
+        <div className="lessonExample"><small>具体例</small><strong><Terms text={activeStudyPages[studyPage].example}/></strong></div>
+        <div className="lessonTip">♡ 簿記ちゃんメモ　<Terms text={activeStudyPages[studyPage].note}/></div>
+        <div className="lessonNav"><button disabled={studyPage === 0} onClick={()=>{playSound("tap");setStudyPage(p=>p-1)}}>← 前のページ</button><button className="lessonStart" onClick={() => {playSound("tap"); if(studyPage === activeStudyPages.length-1){setPhase("test");setIndex(0)}else setStudyPage(p=>p+1);}}>{studyPage === activeStudyPages.length-1 ? `レベル${level + 1}の10問テスト` : "次のページ"} <span>→</span></button></div>
       </section>
       <aside className="studyMascot"><span>点線の専門用語に<br/><b>触れると解説が出るよ！</b></span><div><img src="./boki-chan-character-sheet.png" alt="ポイントを教える簿記ちゃん"/></div></aside>
-      <footer className="gameFooter"><span>全5ページを学んだら、10問テストでレベル10を目指そう！</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
+      <footer className="gameFooter"><span>LEVEL {level + 1}「{track.title}」— 5ページ学習後、10問テストに挑戦！</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
     </main>
   );
 
   return (
     <main className={`gamePage ${fx ? `fx-${fx}` : ""}`}>
       {fx === "correct" && <div className="answerBurst" aria-hidden="true">{Array.from({length:14},(_,i)=><i key={i} style={{"--a":`${i*25.7}deg`} as React.CSSProperties}>✦</i>)}</div>}
-      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>LEVEL <b>{index + 1} / 10</b></span><span>SCORE <b>{score.toLocaleString()}</b>{fx === "correct" && <em className="scorePop">+100</em>}</span><span>REVIEW <b>{mistakes}</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
+      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>LEVEL <b>{level + 1} / 10</b></span><span>TEST <b>{index + 1} / 10</b></span><span>SCORE <b>{score.toLocaleString()}</b>{fx === "correct" && <em className="scorePop">+100</em>}</span><span>REVIEW <b>{mistakes}</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
       <div className="progress"><i style={{width: `${((index + 1) / questions.length) * 100}%`}}></i></div>
       <section className="quiz" key={index}>
-        <div className="questionMeta"><span><i className="phaseBadge test">TEST PHASE</i> LEVEL {String(index + 1).padStart(2,"0")}</span><b>♡ {q.category}</b></div>
+        <div className="questionMeta"><span><i className="phaseBadge test">TEST PHASE</i> LEVEL {String(level + 1).padStart(2,"0")}・Q{String(index + 1).padStart(2,"0")}</span><b>♡ {track.title}</b></div>
         <h1><Terms text={q.prompt}/></h1>
         <div className="choices">{q.choices.map((choice, i) => {
           const state = selected === null ? "" : i === q.answer ? "correct" : i === selected ? "wrong" : "dim";
           return <button key={choice} className={state} onClick={() => choose(i)} disabled={selected !== null}><span>{letters[i]}</span><Terms text={choice}/><i>{state === "correct" ? "✓" : state === "wrong" ? "×" : ""}</i></button>;
         })}</div>
-        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? "LEVEL CLEAR！ +100 pt" : "解説を確認して、同じ問題に再挑戦しよう"}</b></div><p><Terms text={q.explanation}/></p><div className="journal"><small>簿記ちゃんメモ</small><Terms text={q.journal}/></div><button onClick={next}>{correct ? (index === questions.length - 1 ? "コース結果を見る" : `レベル${index + 2}へ`) : "もう一度挑戦"} →</button></div>}
+        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? `正解！ ${index + 1} / 10問クリア` : "解説を確認して、同じ問題に再挑戦しよう"}</b></div><p><Terms text={q.explanation}/></p><div className="journal"><small>簿記ちゃんメモ</small><Terms text={q.journal}/></div><button onClick={next}>{correct ? (index === questions.length - 1 ? (level === 9 ? "全コース結果を見る" : "LEVEL UP!") : "次の問題へ") : "もう一度挑戦"} →</button></div>}
       </section>
       <aside className={`gameMascot ${selected === null ? "neutral" : correct ? "correct" : "wrong"}`} aria-live="polite">
         <span className="mascotTalk">{selected === null ? "焦らずいこう♪" : correct ? "大正解！さすが♡" : "大丈夫、次で取り返そう！"}</span>
