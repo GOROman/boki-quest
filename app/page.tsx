@@ -11,6 +11,27 @@ type Question = {
   journal: string;
 };
 
+type Lesson = {
+  title: string;
+  goal: string;
+  rule: string;
+  example: string;
+  tip: string;
+};
+
+const lessons: Lesson[] = [
+  { title:"仕訳の第一歩", goal:"借方と貸方の位置を覚えよう", rule:"仕訳は左が借方、右が貸方。左右の金額は必ず同じになります。", example:"（借）仕入 30,000 ／（貸）現金 30,000", tip:"まずは『左＝借、右＝貸』だけ覚えればOK！" },
+  { title:"資産と収益", goal:"売掛金と売上の違いを理解しよう", rule:"売掛金は後で代金を受け取る権利＝資産。売上はもうけの原因＝収益です。", example:"（借）売掛金 50,000 ／（貸）売上 50,000", tip:"資産の増加は左、収益の増加は右です。" },
+  { title:"固定資産", goal:"長く使うものの仕訳を学ぼう", rule:"机やパソコンなど長期間使うものは、費用ではなく『備品』という資産です。", example:"（借）備品 120,000 ／（貸）普通預金 120,000", tip:"すぐ使い切る？長く使う？で考えよう。" },
+  { title:"費用の発生", goal:"家賃などの経費を仕訳しよう", rule:"家賃や水道光熱費など、事業のために使った金額は費用。費用の発生は借方です。", example:"（借）支払家賃 80,000 ／（貸）現金 80,000", tip:"費用が増えたら左側！" },
+  { title:"負債の減少", goal:"買掛金を支払う仕訳を覚えよう", rule:"買掛金は後で代金を払う義務＝負債。支払うと義務が減るので借方です。", example:"（借）買掛金 45,000 ／（貸）普通預金 45,000", tip:"負債は増加が右、減少が左です。" },
+  { title:"純資産", goal:"資本金の意味を理解しよう", rule:"事業を始めるために出資した元手は『資本金』。純資産の増加は貸方です。", example:"（借）現金 500,000 ／（貸）資本金 500,000", tip:"自分で用意した元手は借金ではありません。" },
+  { title:"借入金", goal:"資産と負債の同時増加を学ぼう", rule:"銀行から借りると預金という資産と、返済義務である借入金が同時に増えます。", example:"（借）普通預金 300,000 ／（貸）借入金 300,000", tip:"お金が増えても、同時に返す義務も増えます。" },
+  { title:"減価償却", goal:"固定資産を期間配分しよう", rule:"備品の取得額は、使う期間に分けて費用にします。間接法では累計額を貸方に記入します。", example:"（借）減価償却費 20,000 ／（貸）備品減価償却累計額 20,000", tip:"今年使った分だけを費用にするイメージ。" },
+  { title:"試算表", goal:"複式簿記のチェック方法を学ぼう", rule:"すべての仕訳は借方と貸方が同額なので、試算表でも双方の合計は一致します。", example:"借方合計 ＝ 貸方合計", tip:"一致しなければ、どこかに記入ミスがあります。" },
+  { title:"貸倒れ", goal:"回収できない売掛金を処理しよう", rule:"売掛金が回収不能になり、引当金がなければ『貸倒損失』という費用にします。", example:"（借）貸倒損失 15,000 ／（貸）売掛金 15,000", tip:"最後のテスト！損失は費用なので借方です。" },
+];
+
 const questions: Question[] = [
   { category: "現金・預金", prompt: "商品を現金 ¥30,000 で仕入れた。正しい仕訳は？", choices: ["（借）仕入 30,000 ／（貸）現金 30,000", "（借）現金 30,000 ／（貸）仕入 30,000", "（借）商品 30,000 ／（貸）売上 30,000", "（借）売上 30,000 ／（貸）現金 30,000"], answer: 0, explanation: "商品を仕入れたときは費用の「仕入」が増加するため借方。現金の減少は貸方です。", journal: "仕入 30,000｜現金 30,000" },
   { category: "売掛金", prompt: "商品 ¥50,000 を掛けで売り上げた。正しい仕訳は？", choices: ["（借）売上 50,000 ／（貸）売掛金 50,000", "（借）売掛金 50,000 ／（貸）売上 50,000", "（借）現金 50,000 ／（貸）売上 50,000", "（借）仕入 50,000 ／（貸）買掛金 50,000"], answer: 1, explanation: "代金を後で受け取る権利「売掛金」は資産なので増加を借方、収益の「売上」は貸方に記入します。", journal: "売掛金 50,000｜売上 50,000" },
@@ -29,10 +50,10 @@ const letters = ["A", "B", "C", "D"];
 export default function Home() {
   const [started, setStarted] = useState(false);
   const [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<"study" | "test">("study");
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [lives, setLives] = useState(3);
+  const [mistakes, setMistakes] = useState(0);
   const [finished, setFinished] = useState(false);
   const [best, setBest] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -40,9 +61,10 @@ export default function Home() {
   const [fx, setFx] = useState<"correct" | "wrong" | "">("");
   const audioRef = useRef<AudioContext | null>(null);
   const q = questions[index];
+  const lesson = lessons[index];
 
   useEffect(() => { setBest(Number(localStorage.getItem("boki-quest-best") || 0)); }, []);
-  const rank = useMemo(() => score >= 1100 ? "S" : score >= 850 ? "A" : score >= 600 ? "B" : "C", [score]);
+  const rank = useMemo(() => mistakes === 0 ? "S" : mistakes <= 2 ? "A" : mistakes <= 5 ? "B" : "C", [mistakes]);
 
   function playSound(kind: "tap" | "correct" | "wrong" | "finish") {
     if (!soundOn || typeof window === "undefined") return;
@@ -72,30 +94,33 @@ export default function Home() {
     setSelected(choice);
     if (choice === q.answer) {
       playSound("correct");
-      const gained = 100 + streak * 20;
-      setScore((s) => s + gained);
-      setStreak((s) => s + 1);
+      setScore((s) => s + 100);
       setCorrectCount((c) => c + 1);
       setFx("correct");
     } else {
       playSound("wrong");
-      setStreak(0);
-      setLives((l) => Math.max(0, l - 1));
+      setMistakes((m) => m + 1);
       setFx("wrong");
     }
     window.setTimeout(() => setFx(""), 700);
   }
 
   function next() {
-    if (index === questions.length - 1 || lives === 0) {
+    if (selected !== q.answer) {
+      playSound("tap");
+      setPhase("study");
+      setSelected(null);
+      return;
+    }
+    if (index === questions.length - 1) {
       playSound("finish");
-      const finalScore = score;
+      const finalScore = score + 100;
       if (finalScore > best) { setBest(finalScore); localStorage.setItem("boki-quest-best", String(finalScore)); }
       setFinished(true);
-    } else { playSound("tap"); setIndex((i) => i + 1); setSelected(null); }
+    } else { playSound("tap"); setIndex((i) => i + 1); setSelected(null); setPhase("study"); }
   }
 
-  function restart() { playSound("tap"); setStarted(true); setFinished(false); setIndex(0); setSelected(null); setScore(0); setStreak(0); setLives(3); setCorrectCount(0); setFx(""); }
+  function restart() { playSound("tap"); setStarted(true); setFinished(false); setIndex(0); setPhase("study"); setSelected(null); setScore(0); setMistakes(0); setCorrectCount(0); setFx(""); }
 
   if (!started) return (
     <main className="titleScreen">
@@ -104,7 +129,7 @@ export default function Home() {
       <header className="titleHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST <small>日商簿記3級</small></span></div><button className="soundToggle" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪ ON" : "♪ OFF"}</button></header>
       <div className="mobileGameTitle"><b>BOKI QUEST</b><span>講義のすきまに、簿記力をちょっとずつ。</span></div>
       <section className="startDock">
-        <div className="startInfo"><span>MY BEST <b>{best.toLocaleString()}</b></span><span>10 QUESTIONS</span><span>ABOUT 5 MIN</span></div>
+        <div className="startInfo"><span>MY BEST <b>{best.toLocaleString()}</b></span><span>10 LEVELS</span><span>STUDY ＋ TEST</span></div>
         <button className="startButton" onClick={restart}><i>▶</i><span>GAME START<small>簿記ちゃんとクエストへ</small></span></button>
         <p>タップしてスタート</p>
       </section>
@@ -115,25 +140,46 @@ export default function Home() {
     <main className="resultPage resultGameScreen">
       <div className="confetti" aria-hidden="true">{Array.from({length:28},(_,i)=><i key={i} style={{"--x":`${(i*37)%100}%`,"--d":`${(i%7)*.12}s`,"--r":`${(i*47)%180}deg`} as React.CSSProperties}></i>)}</div>
       <header className="resultHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><span>RESULT</span></header>
-      <div className="resultCharacter"><img src="./boki-quest-key-art.png" alt="クリアを祝う簿記ちゃん"/><span>{lives === 0 ? "次はもっといけるよ！" : rank === "S" ? "完璧！さすがだね♡" : "おつかれさま！すごいよ♡"}</span></div>
-      <section className="resultCard"><div className="resultLabel">QUEST COMPLETE</div><div className="rank">{rank}</div><h1>{lives === 0 ? "また挑戦しよう！" : "ステージクリア！"}</h1><p>今回のスコア</p><strong className="finalScore">{score.toLocaleString()}</strong><div className="resultStats"><span>正解数<b>{correctCount} / {index + 1}</b></span><span>ベストスコア<b>{Math.max(best, score).toLocaleString()}</b></span></div><button className="primary" onClick={restart}>もう一度挑戦する <span>↻</span></button><button className="backTitle" onClick={() => {playSound("tap");setStarted(false);setFinished(false);}}>タイトルへ戻る</button></section>
+      <div className="resultCharacter"><img src="./boki-quest-key-art.png" alt="クリアを祝う簿記ちゃん"/><span>{rank === "S" ? "全問一発クリア！完璧♡" : "レベル10クリア、おめでとう♡"}</span></div>
+      <section className="resultCard"><div className="resultLabel">LEVEL 10 COMPLETE</div><div className="rank">{rank}</div><h1>コースクリア！</h1><p>習得スコア</p><strong className="finalScore">{score.toLocaleString()}</strong><div className="resultStats"><span>クリアレベル<b>{correctCount} / 10</b></span><span>復習回数<b>{mistakes} 回</b></span></div><button className="primary" onClick={restart}>もう一度学ぶ <span>↻</span></button><button className="backTitle" onClick={() => {playSound("tap");setStarted(false);setFinished(false);}}>タイトルへ戻る</button></section>
     </main>
   );
 
   const correct = selected === q.answer;
+  if (phase === "study") return (
+    <main className="gamePage studyPage">
+      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>LEVEL <b>{index + 1} / 10</b></span><span>SCORE <b>{score.toLocaleString()}</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
+      <div className="levelRail" aria-label={`レベル${index + 1}`}>
+        {lessons.map((item,i)=><i key={item.title} className={i < index ? "done" : i === index ? "current" : ""}><span>{i < index ? "✓" : i + 1}</span></i>)}
+      </div>
+      <section className="lessonCard">
+        <div className="phaseBadge study">STUDY PHASE</div>
+        <p className="levelLabel">LEVEL {String(index + 1).padStart(2,"0")}</p>
+        <h1>{lesson.title}</h1>
+        <h2>{lesson.goal}</h2>
+        <div className="lessonRule"><small>今日の基本</small><p>{lesson.rule}</p></div>
+        <div className="lessonExample"><small>仕訳例</small><strong>{lesson.example}</strong></div>
+        <div className="lessonTip">♡ 簿記ちゃんメモ　{lesson.tip}</div>
+        <button className="lessonStart" onClick={() => {playSound("tap");setPhase("test");}}>テストに挑戦 <span>→</span></button>
+      </section>
+      <aside className="studyMascot"><span>ここを覚えれば<br/><b>テストもばっちり！</b></span><div><img src="./boki-chan-character-sheet.png" alt="ポイントを教える簿記ちゃん"/></div></aside>
+      <footer className="gameFooter"><span>勉強フェーズで基本を覚えて、テストフェーズでレベルアップ！</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
+    </main>
+  );
+
   return (
     <main className={`gamePage ${fx ? `fx-${fx}` : ""}`}>
       {fx === "correct" && <div className="answerBurst" aria-hidden="true">{Array.from({length:14},(_,i)=><i key={i} style={{"--a":`${i*25.7}deg`} as React.CSSProperties}>✦</i>)}</div>}
-      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>SCORE <b>{score.toLocaleString()}</b>{fx === "correct" && <em className="scorePop">+{100 + (streak - 1) * 20}</em>}</span><span>STREAK <b>{streak}×</b></span><span className="lives" aria-label={`ライフ ${lives}`}>{[0,1,2].map(i => <i key={i} className={i < lives ? "on" : ""}>♥</i>)}</span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
+      <header className="gameHeader"><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div className="hud"><span>LEVEL <b>{index + 1} / 10</b></span><span>SCORE <b>{score.toLocaleString()}</b>{fx === "correct" && <em className="scorePop">+100</em>}</span><span>REVIEW <b>{mistakes}</b></span><button className="soundToggle compact" onClick={() => setSoundOn((v) => !v)} aria-label={soundOn ? "効果音をオフにする" : "効果音をオンにする"}>{soundOn ? "♪" : "×"}</button></div></header>
       <div className="progress"><i style={{width: `${((index + 1) / questions.length) * 100}%`}}></i></div>
       <section className="quiz" key={index}>
-        <div className="questionMeta"><span>QUESTION {String(index + 1).padStart(2,"0")} / {questions.length}</span><b>♡ {q.category}</b></div>
+        <div className="questionMeta"><span><i className="phaseBadge test">TEST PHASE</i> LEVEL {String(index + 1).padStart(2,"0")}</span><b>♡ {q.category}</b></div>
         <h1>{q.prompt}</h1>
         <div className="choices">{q.choices.map((choice, i) => {
           const state = selected === null ? "" : i === q.answer ? "correct" : i === selected ? "wrong" : "dim";
           return <button key={choice} className={state} onClick={() => choose(i)} disabled={selected !== null}><span>{letters[i]}</span>{choice}<i>{state === "correct" ? "✓" : state === "wrong" ? "×" : ""}</i></button>;
         })}</div>
-        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? `すごい、正解！ ${100 + (streak - 1) * 20} pt` : "大丈夫。ここで覚えればOK！"}</b></div><p>{q.explanation}</p><div className="journal"><small>簿記ちゃんメモ</small>{q.journal}</div><button onClick={next}>{index === questions.length - 1 || lives === 0 ? "結果を見る" : "次の問題へ"} →</button></div>}
+        {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? "LEVEL CLEAR！ +100 pt" : "もう一度勉強フェーズで復習しよう"}</b></div><p>{q.explanation}</p><div className="journal"><small>簿記ちゃんメモ</small>{q.journal}</div><button onClick={next}>{correct ? (index === questions.length - 1 ? "コース結果を見る" : `レベル${index + 2}へ`) : "復習する"} →</button></div>}
       </section>
       <aside className={`gameMascot ${selected === null ? "neutral" : correct ? "correct" : "wrong"}`} aria-live="polite">
         <span className="mascotTalk">{selected === null ? "焦らずいこう♪" : correct ? "大正解！さすが♡" : "大丈夫、次で取り返そう！"}</span>
