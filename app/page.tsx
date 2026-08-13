@@ -107,8 +107,19 @@ const questions: Question[] = [
 
 const letters = ["A", "B", "C", "D"];
 
+const teachers = [
+  { name:"一ノ瀬 紫苑", reading:"ICHINOSE SHION", gender:"女性", role:"理論派エリート", style:"理由から理解", specialty:"決算・財務諸表", quote:"仕組みがわかれば、暗記はいりません。", color:"#8d6ab3", cell:0 },
+  { name:"春日 ひなた", reading:"KASUGA HINATA", gender:"女性", role:"伴走型コーチ", style:"ほめて伸ばす", specialty:"簿記の基礎", quote:"間違えても大丈夫。一緒に進もう！", color:"#e67896", cell:1 },
+  { name:"氷室 怜奈", reading:"HIMURO REINA", gender:"女性", role:"クール分析官", style:"図解とデータ", specialty:"試算表・精算表", quote:"パターンを見抜けば、答えは一つです。", color:"#6da9d2", cell:2 },
+  { name:"赤城 大地", reading:"AKAGI DAICHI", gender:"男性", role:"熱血トレーナー", style:"反復で定着", specialty:"仕訳スピード", quote:"迷ったら手を動かす！10問いくぞ！", color:"#d85f5f", cell:3 },
+  { name:"森川 奏", reading:"MORIKAWA KANADE", gender:"男性", role:"やさしい教授", style:"丁寧に分解", specialty:"苦手克服", quote:"焦らなくて大丈夫。一つずつ整理しましょう。", color:"#6b9b79", cell:4 },
+  { name:"速水 レン", reading:"HAYAMI REN", gender:"男性", role:"時短攻略ナビ", style:"コツで最短", specialty:"試験テクニック", quote:"最短ルート、教えてあげるよ。", color:"#d5a632", cell:5 },
+] as const;
+
 export default function Home() {
   const [started, setStarted] = useState(false);
+  const [selectingTeacher, setSelectingTeacher] = useState(false);
+  const [teacherIndex, setTeacherIndex] = useState(1);
   const [level, setLevel] = useState(0);
   const [unlockedLevel, setUnlockedLevel] = useState(0);
   const [index, setIndex] = useState(0);
@@ -133,7 +144,9 @@ export default function Home() {
     const savedLevel = Math.min(9, Number(localStorage.getItem("boki-quest-level") || 0));
     setUnlockedLevel(savedLevel);
     setLevel(savedLevel);
+    setTeacherIndex(Math.min(5, Number(localStorage.getItem("boki-quest-teacher") || 1)));
   }, []);
+  const teacher = teachers[teacherIndex];
   const rank = useMemo(() => mistakes === 0 ? "S" : mistakes <= 2 ? "A" : mistakes <= 5 ? "B" : "C", [mistakes]);
 
   function playSound(kind: "tap" | "correct" | "wrong" | "finish") {
@@ -198,7 +211,32 @@ export default function Home() {
   }
 
   function resetLevel(targetLevel = unlockedLevel) { setLevel(targetLevel); setIndex(0); setStudyPage(0); setPhase("study"); setSelected(null); setCorrectCount(0); setFx(""); setLevelUp(false); }
-  function restart() { playSound("tap"); setStarted(true); setFinished(false); setScore(0); setMistakes(0); resetLevel(unlockedLevel); }
+  function restart() { playSound("tap"); setSelectingTeacher(true); setStarted(false); }
+  function confirmTeacher() { playSound("finish"); localStorage.setItem("boki-quest-teacher", String(teacherIndex)); setSelectingTeacher(false); setStarted(true); setFinished(false); setScore(0); setMistakes(0); resetLevel(unlockedLevel); }
+
+  useEffect(() => {
+    if (!selectingTeacher) return;
+    const handleKey = (event:KeyboardEvent) => {
+      if (["ArrowRight","ArrowDown"].includes(event.key)) { event.preventDefault(); playSound("tap"); setTeacherIndex(i=>(i+1)%teachers.length); }
+      if (["ArrowLeft","ArrowUp"].includes(event.key)) { event.preventDefault(); playSound("tap"); setTeacherIndex(i=>(i+teachers.length-1)%teachers.length); }
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); confirmTeacher(); }
+      if (event.key === "Escape") setSelectingTeacher(false);
+    };
+    window.addEventListener("keydown",handleKey);
+    return () => window.removeEventListener("keydown",handleKey);
+  });
+
+  if (selectingTeacher) return (
+    <main className="teacherSelect" style={{"--teacher":teacher.color} as React.CSSProperties}>
+      <header><div className="brand"><span className="brandMark">簿</span><span>BOKI QUEST</span></div><div><b>SELECT YOUR TEACHER</b><span>先生を選んでください</span></div><button onClick={()=>setSelectingTeacher(false)}>×</button></header>
+      <section className="teacherPreview">
+        <div className={`teacherPortrait cell-${teacher.cell}`}><img src="./teacher-roster.png" alt={teacher.name}/></div>
+        <div className="teacherBio"><span>{teacher.gender} / {teacher.role}</span><small>{teacher.reading}</small><h1>{teacher.name}</h1><p>「{teacher.quote}」</p><dl><div><dt>TEACH STYLE</dt><dd>{teacher.style}</dd></div><div><dt>SPECIALTY</dt><dd>{teacher.specialty}</dd></div></dl></div>
+      </section>
+      <section className="fighterRoster">{teachers.map((item,i)=><button key={item.name} className={i===teacherIndex ? "selected" : ""} style={{"--accent":item.color} as React.CSSProperties} onClick={()=>{playSound("tap");setTeacherIndex(i)}}><div className={`miniPortrait cell-${item.cell}`}><img src="./teacher-roster.png" alt=""/></div><span>{item.name}<small>{item.role}</small></span></button>)}</section>
+      <button className="teacherConfirm" onClick={confirmTeacher}><span>この先生に決定</span><b>CONFIRM</b><i>▶</i></button><p className="selectHelp">← → で選択　ENTERで決定</p>
+    </main>
+  );
 
   if (!started) return (
     <main className="titleScreen">
@@ -249,7 +287,7 @@ export default function Home() {
         <div className="lessonTip">♡ 簿記ちゃんメモ　<Terms text={activeStudyPages[studyPage].note}/></div>
         <div className="lessonNav"><button disabled={studyPage === 0} onClick={()=>{playSound("tap");setStudyPage(p=>p-1)}}>← 前のページ</button><button className="lessonStart" onClick={() => {playSound("tap"); if(studyPage === activeStudyPages.length-1){setPhase("test");setIndex(0)}else setStudyPage(p=>p+1);}}>{studyPage === activeStudyPages.length-1 ? `レベル${level + 1}の10問テスト` : "次のページ"} <span>→</span></button></div>
       </section>
-      <aside className="studyMascot"><span>点線の専門用語に<br/><b>触れると解説が出るよ！</b></span><div><img src="./boki-chan-character-sheet.png" alt="ポイントを教える簿記ちゃん"/></div></aside>
+      <aside className="studyMascot"><span>{teacher.name}先生<br/><b>{teacher.style}でサポート！</b></span><div className={`teacherSprite cell-${teacher.cell}`}><img src="./teacher-roster.png" alt={`ポイントを教える${teacher.name}先生`}/></div></aside>
       <footer className="gameFooter"><span>LEVEL {level + 1}「{track.title}」— 5ページ学習後、10問テストに挑戦！</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
     </main>
   );
@@ -269,8 +307,8 @@ export default function Home() {
         {selected !== null && <div className={`feedback ${correct ? "good" : "bad"}`} role="status"><div className="feedbackTitle"><span>{correct ? "✓" : "!"}</span><b>{correct ? `正解！ ${index + 1} / 10問クリア` : "解説を確認して、同じ問題に再挑戦しよう"}</b></div><p><Terms text={q.explanation}/></p><div className="journal"><small>簿記ちゃんメモ</small><Terms text={q.journal}/></div><button onClick={next}>{correct ? (index === questions.length - 1 ? (level === 9 ? "全コース結果を見る" : "LEVEL UP!") : "次の問題へ") : "もう一度挑戦"} →</button></div>}
       </section>
       <aside className={`gameMascot ${selected === null ? "neutral" : correct ? "correct" : "wrong"}`} aria-live="polite">
-        <span className="mascotTalk">{selected === null ? "焦らずいこう♪" : correct ? "大正解！さすが♡" : "大丈夫、次で取り返そう！"}</span>
-        <div className="mascotCrop"><img src="./boki-chan-character-sheet.png" alt={selected === null ? "応援する簿記ちゃん" : correct ? "正解を喜ぶ簿記ちゃん" : "一緒に考える簿記ちゃん"}/></div>
+        <span className="mascotTalk">{selected === null ? teacher.quote : correct ? `${teacher.name}「正解！いい調子！」` : `${teacher.name}「解説を見て再挑戦しよう」`}</span>
+        <div className={`mascotCrop teacherSprite cell-${teacher.cell}`}><img src="./teacher-roster.png" alt={`${teacher.name}先生`}/></div>
       </aside>
       <footer className="gameFooter"><span>簿記ちゃんヒント：資産・費用の増加は借方、負債・純資産・収益の増加は貸方</span><button onClick={() => setStarted(false)}>ホームへ</button></footer>
     </main>
